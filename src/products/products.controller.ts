@@ -3,14 +3,21 @@ import {
   Controller,
   Delete,
   Get,
+  Param,
   Post,
   Put,
-  Param,
 } from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiForbiddenResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { CreateProductDto } from './dto/createProduct.dto';
 import { UpdateProductDto } from './dto/updateProduct.dto';
 import { ProductService } from './products.service';
-
+@ApiBearerAuth()
+@ApiTags('products')
 @Controller('products')
 export class ProductController {
   constructor(private readonly prodcutService: ProductService) {}
@@ -23,6 +30,9 @@ export class ProductController {
     return this.responseGenerator(await this.prodcutService.findById(id));
   }
   @Post()
+  @ApiCreatedResponse({
+    description: 'The record has been successfully created.',
+  })
   async create(@Body() newProdcut: CreateProductDto) {
     return this.responseGenerator(await this.prodcutService.create(newProdcut));
   }

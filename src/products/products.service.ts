@@ -1,38 +1,29 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Product } from './products.modal';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { CreateProductDto } from './dto/createProduct.dto';
+import { UpdateProductDto } from './dto/updateProduct.dto';
+import { Product, ProductDocument } from './schemas/product.schema';
 @Injectable()
 export class ProductService {
-  private products: Product[] = [];
-  create(newProduct: Product) {
-    this.products.push(newProduct);
-    return newProduct;
+  constructor(
+    @InjectModel(Product.name) private productModel: Model<ProductDocument>,
+  ) {}
+  async create(createProductDto: CreateProductDto): Promise<Product> {
+    const createdCat = new this.productModel(createProductDto);
+    return createdCat.save();
   }
-  update({ id, name, author }: Product) {
-    const { product } = this.findProdcutIndex(id);
-    if (name) {
-      product.name = name;
-    }
-    if (author) {
-      product.author = author;
-    }
-    return product;
+  async findAll(): Promise<Product[]> {
+    return this.productModel.find().exec();
   }
-  delete(id: string) {
-    const { index } = this.findProdcutIndex(id);
-    this.products.splice(index, 1);
+  async update(id: string, updateProductDto: UpdateProductDto) {
+    return this.productModel.findByIdAndUpdate(id, updateProductDto);
   }
-  findAll() {
-    return [...this.products];
+  async delete(id: string) {
+    return this.productModel.findByIdAndRemove(id);
   }
-  findOne(id: string) {
-    const { product } = this.findProdcutIndex(id);
-    return { ...product };
-  }
-  private findProdcutIndex(id: string) {
-    const i = this.products.findIndex((t) => t.id === id);
-    if (i === -1) {
-      throw new NotFoundException('Could not find product.');
-    }
-    return { index: i, product: this.products[i] };
+
+  async findById(id: string) {
+    return this.productModel.findById(id);
   }
 }

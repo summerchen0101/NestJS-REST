@@ -3,45 +3,45 @@ import {
   Controller,
   Delete,
   Get,
-  Param,
   Post,
   Put,
+  Param,
 } from '@nestjs/common';
-import { Product } from './products.modal';
+import { CreateProductDto } from './dto/createProduct.dto';
+import { UpdateProductDto } from './dto/updateProduct.dto';
 import { ProductService } from './products.service';
 
 @Controller('products')
 export class ProductController {
   constructor(private readonly prodcutService: ProductService) {}
   @Get()
-  findAll() {
-    return this.responseGenerator(this.prodcutService.findAll());
+  async findAll() {
+    return this.responseGenerator(await this.prodcutService.findAll());
   }
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.responseGenerator(this.prodcutService.findOne(id));
+  async findOne(@Param('id') id: string) {
+    return this.responseGenerator(await this.prodcutService.findById(id));
   }
   @Post()
-  create(@Body() newProdcut: Omit<Product, 'id'>) {
-    const product = {
-      id: new Date().valueOf().toString(),
-      ...newProdcut,
-    };
-    return this.responseGenerator(this.prodcutService.create(product));
+  async create(@Body() newProdcut: CreateProductDto) {
+    return this.responseGenerator(await this.prodcutService.create(newProdcut));
   }
   @Put(':id')
-  update(@Param('id') id: string, @Body() updateProduct: Product) {
+  async update(
+    @Param('id') id: string,
+    @Body() updateProduct: UpdateProductDto,
+  ) {
     return this.responseGenerator(
-      this.prodcutService.update({ ...updateProduct, id }),
+      await this.prodcutService.update(id, updateProduct),
     );
   }
   @Delete(':id')
-  delete(@Param('id') id: string) {
-    this.prodcutService.delete(id);
-    return this.responseGenerator();
+  async delete(@Param('id') id: string) {
+    await this.prodcutService.delete(id);
+    return this.responseGenerator(id);
   }
 
-  private responseGenerator(returnData?: any) {
+  private responseGenerator<T>(returnData?: T) {
     return { code: 0, data: returnData };
   }
 }
